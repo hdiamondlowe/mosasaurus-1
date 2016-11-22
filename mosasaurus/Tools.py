@@ -15,3 +15,12 @@ def writeFitsData(data, filename, verbose=False):
   hdu.writeto(filename, clobber=True)
   if verbose:
     print "      wrote image to ", filename
+
+def iraf2python(s):
+    '''Convert an IRAF (1-indexed) column-row string
+        ('[c1:c2,r1:r2]') to Python (0-indexed) [r1:r2,c1:c2]'''
+
+    cols, rows = .strip('[]').split(',')
+    bottom, top = np.array(rows.split(':')).astype(np.int) - np.array([1,0])
+    left, right = np.array(cols.split(':')).astype(np.int) - np.array([1,0])
+    return bottom, top, left, right

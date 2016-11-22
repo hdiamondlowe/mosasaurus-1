@@ -1,0 +1,78 @@
+
+from mosasaurus.instruments import DISr
+
+instrument = DISr(binning=2)
+observation = Observation(name='calibrations',
+          )
+
+# target, field, or experiment name
+name                 calibrations
+
+# name of the instrument (determines how calibrations happen)
+instrument           DIS
+
+# for DIS, low-res can be B400/R300, high-res B1200/R1200
+grism                R300
+night                UT20161111
+baseDirectory        /Users/zkbt/Cosmos/Data/APO/DIS/
+dataDirectory        data/
+workingDirectory     working/
+
+# where should the extracted data be stored?
+extractionDirectory  multipleapertures/
+
+# extraction widths, from narrowest to widest
+narrowest            2
+widest              12
+numberofapertures    6
+
+# initial guess for the sky regions
+skyWidth              10
+
+# pixels within this distance of the aperture will be excluded from sky
+skyGap                2
+
+# other properties
+cosmicThreshold      10
+
+# (how much to trim out around each star)
+subarray             50
+binning               2
+
+# CCD number ranges
+nUndispersed            0   0
+nScience                0   0
+nHe                   27   31
+nNe                   32   36
+nAr                   37   41
+nWideFlat             44   48
+nBias                   0    0
+nWideMask             49   53
+nThinMask               0    0
+nDark                   0    0
+nFinder                 0   0
+
+# extraction parameters
+traceOrder             2
+nFWHM                  2
+
+# what area of the detector contains real data? (for individual amplifiers
+
+
+# how far (in pixels) does spectrum extend away from direct image position
+blueward       2000
+redward        2000
+
+# which comparison stars to use?
+target        0
+comp          1 3 5 6 7 8
+cosmicAbandon 100
+
+# how should spectra be shifted relative to each other?
+correlationAnchors 8498.0 8542.0 8662.0
+correlationRange   8350 8800
+correlationSmooth  2
+
+# for BJD calculation
+ra          153.7090887
+dec        -47.15496899

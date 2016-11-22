@@ -1,69 +1,66 @@
 from imports import *
 from Headers import Headers
+import instruments
 #from Display import Display
 
 #  an object that stores all the specifics related to a particular target/night of observing
 class Observation(Talker):
+
     '''Observation object store basic information about an observation of one object on one night.'''
-    def __init__(self, filename, nods9=False, **kwargs):
+    def __init__(self, **kwargs):
         '''Initialize an observation object.'''
 
-        # decide whether or not this creature is chatty
-        Talker.__init__(self, **kwargs)
-
-
-        self.readParameters(filename)
-
-        self.fileprefixes = self.fileprefix(self.nNeeded)
-
-        zachopy.utils.mkdir(self.workingDirectory)
-        #self.display = Display(nods9=nods9)
-
+        Talker.__init__(self)
+        self.fromDictionry(**kwargs)
 
     def loadHeaders(self, remake=False):
         self.headers = Headers(self, mute=self._mute, pithy=self._pithy)
         self.headers.load(remake=remake)
 
-    def readParameters(self, filename):
+    def fromDictionary(self, dictionary):
         '''A function to read in a stored parameter file, with all details needed for extraction.'''
         self.speak('trying to read {0} for observation parameters'.format(filename))
-        file = open(filename)
-        lines = file.readlines()
-        dictionary = {}
-        for i in range(len(lines)):
-          if lines[i] != '\n' and lines[i][0] != '#':
-            split = lines[i].split()
-            key = split[0]
-            entries = split[1:]
-            if len(entries) == 1:
-              entries = entries[0]
-            dictionary[key] = entries
+
+        # store the basics of the observation
         self.name = dictionary['name']
         self.night = dictionary['night']
         self.grism = dictionary['grism'].lower()
-        self.instrument = dictionary['instrument']
-        if "LDSS" in self.instrument:
-            self.observatory = 'lco'
+        instrumentname = dictionary['instrument']
+        self.instrument = instrument.locals()[instrumentname]
+
+
+        # set up the wavelength calibration paths
+        self.referenceDirectory = os.path.join(mosasaurusdirectory, 'data/', self.instrument)
+        self.wavelength2pixelsFile = self.referenceDirectory  + '{0}_wavelength_identifications.txt'.format(self.grism)
+        self.wavelengthsFile = self.referenceDirectory + 'HeNeAr.txt'
+
+        # where's the base directory for this observation
         self.baseDirectory = dictionary['baseDirectory']
         if '/media/hannah/Seagate' in self.baseDirectory:
             self.baseDirectory = ' '.join(dictionary['baseDirectory'])
 
-        # set up the wavelength calibration paths
-        self.referenceDirectory = mosasaurusdirectory + 'data/'
-        self.wavelength2pixelsFile = self.referenceDirectory  + '{0}_wavelength_identifications.txt'.format(self.grism)
-        self.wavelengthsFile = self.referenceDirectory + 'HeNeAr.txt'
-
+        # make a working directory, to store intermediates and results
         zachopy.utils.mkdir(self.baseDirectory + dictionary['workingDirectory'])
         self.workingDirectory = self.baseDirectory + dictionary['workingDirectory'] + self.name + '_' + self.night +'/'
         zachopy.utils.mkdir(self.workingDirectory)
+
+        # where are the data stored?
         self.dataDirectory = self.baseDirectory + dictionary['dataDirectory'] + self.night +'/'
         zachopy.utils.mkdir(self.dataDirectory)
+
+        # make sure the stitched directory is defined
+        self.stitchedDirectory = self.obs.workingDirectory+'/stitched/'
+        zachopy.utils.mkdir(self.stitchedDirectory)
+
+        # where to store the extraction?
         self.extractionDirectory = self.workingDirectory + dictionary['extractionDirectory']
         zachopy.utils.mkdir(self.extractionDirectory)
-        #self.extractionWidth = int(dictionary['extractionWidth'])
+
+        # set up the initial apertures
         self.narrowest = float(dictionary['narrowest'])
         self.widest = float(dictionary['widest'])
         self.numberofapertures = int(dictionary['numberofapertures'])
+
 
         self.skyGap = int(dictionary['skyGap']    )
         self.skyWidth = int(dictionary['skyWidth'])
@@ -90,17 +87,7 @@ class Observation(Talker):
         self.redward = int(dictionary['redward'])
         self.target = [int(x) for x in dictionary['target']]
         self.goodComps = [int(x) for x in dictionary['comp']]
-        self.dataleft    = int(dictionary['dataleft'])
-        self.dataright    = int(dictionary['dataright'])
-        self.databottom    = int(dictionary['databottom'])
-        self.datatop    = int(dictionary['datatop'])
-        self.namps =int(dictionary['namps'])
-        self.xsize = self.namps*(self.dataright - self.dataleft)
-        self.ysize = (self.datatop - self.databottom)
-        self.ra =np.float(dictionary['ra'])
-        self.dec =np.float(dictionary['dec'])
-        self.binning = np.float(dictionary['binning'])
-        self.subarray = np.float(dictionary['subarray'])
+
         try:
             self.gains = [float(x) for x in dictionary['gains']]
         except (ValueError,KeyError):
@@ -118,9 +105,8 @@ class Observation(Talker):
         self.speak('observation parameters have been read and stored'.format(filename))
 
         self.displayscale=0.25
-    def fileprefix(self, n):
-        '''Feed in a ccd number, spit out the file prefix for that CCD amplifier pair.'''
-        try:
-          return [self.dataDirectory + 'ccd{0:04}'.format(x) for x in n]
-        except:
-          return self.dataDirectory + 'ccd{0:04}'.format(n)
+
+        self.ra =np.float(dictionary['ra'])
+        self.dec =np.float(dictionary['dec'])
+        self.binning = np.float(dictionary['binning'])
+        self.subarray = np.float(dictionary['subarray'])

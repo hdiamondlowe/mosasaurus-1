@@ -356,8 +356,10 @@ class Cube(Talker):
           len(comps)
       except TypeError:
           comps = [comps]
+
       self.speak('updating the rough LC with target {0} and comps {1} and wavelength range {2}'.format(target, comps, wavelengths))
 
+      # select the  
       w = self.spectral['wavelength']
       if wavelengths is None:
           wavelengths = [np.min(w), np.max(w)]

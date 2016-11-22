@@ -53,7 +53,7 @@ class Aperture(Talker):
 
   def setup(self,x,y):
     '''Setup the basic geometry of the aperture.'''
-    if self.obs.instrument == 'LDSS3C':
+    if self.obs.instrument.name == 'LDSS3C':
       self.x = x
       self.y = y
       self.maskWidth = self.obs.subarray

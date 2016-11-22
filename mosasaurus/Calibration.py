@@ -30,6 +30,7 @@ class Calibration(Talker):
     self.speak('calibration data are processed and ready for use')
 
   def estimateGain(self):
+    '''(only tested on LDSS3)'''
     self.gains = self.obs.gains
     if self.gains is None:
         try:
